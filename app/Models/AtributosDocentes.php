@@ -9,13 +9,16 @@ class AtributosDocentes extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['id','formacion', 'Especializacion','ExperienciaL', 'docente_id']; 
 
 
     public function docente(){
-       
-            return $this->belongsTo(User::class);
+    
+            return $this->belongsTo(User::class, 'docente_id');
         
     }
+
+
 
 
 }

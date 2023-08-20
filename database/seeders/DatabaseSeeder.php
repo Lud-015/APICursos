@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call(RolesPermisosSeeder::class);
         $this->call(AdministradorSeeder::class);
-
+        $this->call(nivelesSeeder::class);
+        $this->call(edad_dirigidasSeeder::class);
+        $this->call(HorariosSeeder::class);
     }
 }

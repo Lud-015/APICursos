@@ -13,7 +13,12 @@ class DocenteController extends Controller
 
     public function index()
     {
-        //
+        $docente = User::role('Docente')->get();
+        return response()->json([
+            "results" => $docente,
+        ],
+        Response::HTTP_OK);
+
     }
 
 
@@ -40,33 +45,35 @@ class DocenteController extends Controller
         $user->Celular = $request->Celular;
         $user->email = $request->email;
         $user->fechadenac = $request->fechadenac;
-        $user->password = bcrypt(substr($request->name,0,1).substr($request->lastname1,0,1).substr($request->lastname2,0,1).$request->CI);
+        $user->password = bcrypt(substr($request->name,0,1).substr($request->appaterno,0,1).substr($request->apmaterno,0,1).$request->CI);
         $user->save();
         $user->assignRole('Docente');
 
         $atributosDocentes = new AtributosDocentes();
 
+        $atributosDocentes->formacion = ""; 
+        $atributosDocentes->Especializacion = ""; 
+        $atributosDocentes->ExperienciaL = ""; 
+        $atributosDocentes->docente_id = User::latest('id')->first()->id;; 
+        $atributosDocentes->save();
         
-
+            
         return response($user, Response::HTTP_CREATED);
 
 
     }
 
 
-    public function show($id)
-    {
-        //
-    }
+
 
     public function edit($id)
     {
-        //
+        
     }
 
     public function update(Request $request, $id)
     {
-        //
+
     }
 
 

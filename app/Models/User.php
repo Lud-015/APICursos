@@ -31,8 +31,12 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function docente(){
-        return $this->hasOne(AtributosDocentes::class);
+    public function atributosdocente(){
+        return $this->hasOne(AtributosDocentes::class, 'id' , 'docente_id');
+    }   
+
+    public function representanteLegal(){
+        return $this->hasOne(TutorRepresentanteLegal::class, 'id' , 'estudiante_id');
     }   
 
 

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\AtributosDocentes;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -27,6 +28,15 @@ class AdministradorSeeder extends Seeder
             'password' => bcrypt('admin123'),
 
         ]);
+
+        $atributosDocentes = new AtributosDocentes();
+
+        $atributosDocentes->formacion = ""; 
+        $atributosDocentes->Especializacion = ""; 
+        $atributosDocentes->ExperienciaL = ""; 
+        $atributosDocentes->docente_id = User::latest('id')->first()->id;
+        $atributosDocentes->save();
+        
 
         $user-> assignRole('Administrador');
     }

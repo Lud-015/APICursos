@@ -3,42 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AtributosDocentes;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function registerEstudiante(Request $request){
-        
-        
-        // $request->validate([
-        // 'name' => 'required',
-        // 'appaterno' => 'required',
-        // 'apmaterno'=> 'required',
-        // 'CI' => 'required|CI|unique:users',
-        // 'Celular' => 'required',
-        // 'email' => 'required|email|unique:users',
-        // 'fechadenac' => 'required',
-        // ]);
-        
-        
-        
-        $user = new User();
-        $user->name = $request->name;
-        $user->appaterno = $request->appaterno;
-        $user->apmaterno = $request->apmaterno;
-        $user->CI = $request->CI;
-        $user->Celular = $request->Celular;
-        $user->email = $request->email;
-        $user->fechadenac = $request->fechadenac;
-        $user->password = bcrypt(substr($request->name,0,1).substr($request->lastname1,0,1).substr($request->lastname2,0,1).$request->CI);
-        $user->save();
-        $user->assignRole('Estudiante');
-        return response($user, Response::HTTP_CREATED);
-    }
+   
 
 
     public function login(Request $request){
@@ -56,17 +33,140 @@ class AuthController extends Controller
         }
     }
 
-    public function UserProfile(Request $request){
+    public function UserProfile(){
+
+        
+
+        $atributos = DB::table('atributos_docentes')
+        ->where('docente_id', '=', Auth::user()->id)// joining the contacts table , where user_id and contact_user_id are same
+        ->select('atributos_docentes.*')
+        ->get();
+        
         return response()->json([
             "message" => "userProfile OK",
             "userData" => auth()->user(),
-            "Rol" => Auth::user()->roles->pluck('name') 
+            "Rol" => Auth::user()->roles->pluck('name'),
+            "Atributos" =>  $atributos,
+
         ],
         Response::HTTP_OK
+        
     );
+    } 
 
+
+    public function show($id)
+    {
+        $usuario = User::findOrFail($id);
+
+        $atributos = DB::table('atributos_docentes')
+        ->where('docente_id', '=', $id)// joining the contacts table , where user_id and contact_user_id are same
+        ->select('atributos_docentes.*')
+        ->get();
+
+        if($usuario->roles->pluck('name') == "Docente"){
+            return response()->json([
+                "message" => "UserProfile OK",
+                "userData" => $usuario,
+                "Rol" => $usuario->roles->pluck('name'),
+                "atributos" => $usuario->atributosdocente,
+    
+            ],);
+        }else{
+
+            return response()->json([
+                "message" => "UserProfile OK",
+                "userData" => $usuario,
+                "Rol" => $usuario->roles->pluck('name'),
+    
+            ],);
+        }
+
+    }
+
+
+    public function UserProfileEdit(Request $request){
+
+        $request->validate([
+            
+            'Celular' => 'required',
+            'fechadenac' => 'required',
+            'confirmpassword' => 'required'
+        
+        ]);
+
+
+        $user= User::findOrFail(Auth::user()->id); 
+        $user->Celular = $request->Celular;
+        $user->fechadenac = $request->fechadenac;
+
+        $confirmpassword =  $request->confirmpassword;
+        $password = Auth::user()->password;
+
+        
+        if(Hash::check($confirmpassword, $password)){
+            if(auth()->user()->role = "Docente")
+            {
+    
+    
+                $request->validate([
+                    'formacion' => 'required',
+                    'Especializacion' => 'required',
+                    'ExperienciaL' => 'required',
+                ]);
+    
+            
+                
+                DB::table('atributos_docentes')
+                ->where('docente_id', '=', Auth::user()->id)// joining the contacts table , where user_id and contact_user_id are same
+                ->update(['atributos_docentes.formacion' => $request->formacion]);
+                DB::table('atributos_docentes')
+                ->where('docente_id', '=', Auth::user()->id)// joining the contacts table , where user_id and contact_user_id are same
+                ->update(['atributos_docentes.Especializacion' => $request->Especializacion]);
+                DB::table('atributos_docentes')
+                ->where('docente_id', '=', Auth::user()->id)// joining the contacts table , where user_id and contact_user_id are same
+                ->update(['atributos_docentes.ExperienciaL'  => $request->ExperienciaL]);
+                
+                $user->save();
+    
+                $atributos = DB::table('atributos_docentes')
+                ->where('docente_id', '=', Auth::user()->id)// joining the contacts table , where user_id and contact_user_id are same
+                ->select('atributos_docentes.*')
+                ->get();
+            
+                return response()->json([
+                    "message" => "UserUpdateProfile OK",
+                    "userData" => $user,
+                    "Rol" => Auth::user()->roles->pluck('name'),
+                    "Atributos" => $atributos,
+                ],
+                Response::HTTP_OK);
+                
+            }
+            else
+            {
+                $user->save();  
+                return response()->json([
+                    "message" => "UserUpdateProfile OK",
+                    "userData" => auth()->user(),
+                    "Rol" => Auth::user()->roles->pluck('name'),
+                ],
+                Response::HTTP_OK);
+            }
+
+
+        }
+
+        return response()->json([
+            "message" => 'CONTRASEÑA INCORRECTA',
+
+        ],
+        Response::HTTP_LOCKED);
 
     } 
+
+
+
     
     public function logout(){
         $cookie = Cookie::forget('cookie_token');
